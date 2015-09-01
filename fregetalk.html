@@ -1,0 +1,472 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+ "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <meta name="author" content="Michael D. Misamore" />
+  <title>Pure Functional Programming on the JVM with Frege</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+  </style>
+  <link rel="stylesheet" type="text/css" media="screen, projection, print" href="slidy.css" />
+  <script src="slidy.js" charset="utf-8" type="text/javascript"></script>
+</head>
+<body>
+<div class="slide titlepage">
+  <h1 class="title">Pure Functional Programming<br />
+on the JVM with Frege</h1>
+  <p class="author">
+Michael D. Misamore
+  </p>
+  <p class="date">Sept 1, 2015</p>
+</div>
+<div id="some-history" class="slide section level1">
+<h1>Some History</h1>
+<p><img src="church.jpg" style="height: 5em; float:right"> <img src="turing.jpg" style="height: 5em; float:right"></p>
+<ul class="incremental">
+<li>In the beginning (1936), Alan Turing invented his &quot;a-machines&quot; for formalizing computations<br />
+</li>
+</ul>
+<ul class="incremental">
+<li>Around the same time (1936), Alonzo Church completed work on a totally different model for formalizing computations: the λ-calculus</li>
+</ul>
+<ul class="incremental">
+<li>Church and Turing proved that the same computations can be expressed in either system.</li>
+</ul>
+<ul class="incremental">
+<li>Imperative programming languages use Turing's machines as basis; functional programming languages use Church's λ-calculus.</li>
+</ul>
+</div>
+<div id="what-is-functional-programming" class="slide section level1">
+<h1>What is Functional Programming?</h1>
+<ul class="incremental">
+<li>Declarative (&quot;what the answer is&quot;), not imperative (&quot;steps to get to the answer&quot;). Order of expressions and declarations doesn't matter</li>
+</ul>
+<ul class="incremental">
+<li>Primary code-reuse pattern is <em>function composition</em></li>
+</ul>
+<div class="incremental">
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">(.) ::</span> (b <span class="ot">-&gt;</span> c) <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> c)</code></pre></div>
+<ul class="incremental">
+<li>Extensive use of higher-order functions (i.e. functions that take other functions as arguments)</li>
+</ul>
+<ul class="incremental">
+<li>The output of any function depends <em>only</em> on its input, and not on any other state</li>
+</ul>
+<ul class="incremental">
+<li>Program execution consists of evaluating one (typically huge) expression</li>
+</ul>
+</div>
+</div>
+<div id="what-is-pure-functional-programming" class="slide section level1">
+<h1>What is Pure Functional Programming?</h1>
+<ul class="incremental">
+<li>Everything in Functional Programming, plus ...</li>
+</ul>
+<ul class="incremental">
+<li>Evaluating expressions does not cause side-effects (e.g. accessing DB, printing to screen, writing files, launching missiles, etc.)</li>
+</ul>
+<ul class="incremental">
+<li>In any context, evaluating an expression more than once always gives the same answer</li>
+</ul>
+<ul class="incremental">
+<li>Variable assignment doesn't exist; all data structures are <em>immutable</em> and <em>persistent</em></li>
+</ul>
+<ul class="incremental">
+<li>A totally pure functional program does nothing but <span style="color:red">generate heat</span></li>
+</ul>
+</div>
+<div id="purity---why-it-matters" class="slide section level1">
+<h1>Purity - Why it Matters</h1>
+<pre><code>// Whoops.java
+public class Whoops {
+   private int z = 0;
+   private int f() { z++; return z; }
+
+   private void g() {
+      int x = f() + f();
+      int y = 2*f();
+      System.out.println(x + &quot; == &quot; + y);
+   }
+
+   public static void main(String[] args) { 
+      Whoops w = new Whoops(); w.g(); 
+   }
+}
+
+bash-3.2$ java Whoops
+3 == 6</code></pre>
+</div>
+<div id="disadvantages-of-pure-functional-programming" class="slide section level1">
+<h1>Disadvantages of Pure Functional Programming</h1>
+<ul class="incremental">
+<li>Radically different than imperative and object-oriented programming (e.g. no variable assignment, no objects, no for- or while-loops)</li>
+</ul>
+<ul class="incremental">
+<li>Lazy evaluation can lead to space leaks that are difficult to diagnose</li>
+</ul>
+<ul class="incremental">
+<li>Learning to think about everything in terms of composition of higher-order functions takes time</li>
+</ul>
+<ul class="incremental">
+<li>Producing fast immutable data structures is still an active research area</li>
+</ul>
+<ul class="incremental">
+<li>Most algorithms in literature are expressed in imperative terms</li>
+</ul>
+</div>
+<div id="advantages-of-pure-functional-programming" class="slide section level1">
+<h1>Advantages of Pure Functional Programming?</h1>
+<ul class="incremental">
+<li>(Referential transparency) In any context, evaluating a pure expression <em>always gives the same answer</em>: f() + f() == 2*f() is true!</li>
+</ul>
+<ul class="incremental">
+<li>This also enables <em>safe parallelism</em>: evaluating expressions in parallel is no different than evaluating them in (any) order</li>
+</ul>
+<ul class="incremental">
+<li>We don't have to worry about global state, because there isn't any!</li>
+</ul>
+<ul class="incremental">
+<li>All squares are rectangles (since everything is immutable)</li>
+</ul>
+<ul class="incremental">
+<li>We also don't have to worry about object lifetimes or null pointers</li>
+</ul>
+</div>
+<div id="what-is-frege" class="slide section level1">
+<h1>What is Frege?</h1>
+<ul class="incremental">
+<li>A purely functional, strongly and statically typed, <em>lazily evaluated</em> programming language for the JVM. Modeled on Haskell, which doesn't currently run on the JVM.</li>
+</ul>
+<ul class="incremental">
+<li>Lazy evaluation: a non-strict, <em>call-by-need</em> evaluation strategy implemented using thunks. The special value ⊥ = undefined inhabits every type.</li>
+</ul>
+<div class="incremental">
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">f ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> (<span class="dt">Int</span>,<span class="dt">Int</span>)
+f x y z <span class="fu">=</span> (x, y)</code></pre></div>
+<p>Then &quot;f 1 2 3&quot; and &quot;f 1 2 undefined&quot; both give (1, 2)</p>
+<ul>
+<li>Created by Ingo Wechsung in 2011. Development ongoing. Compiler written in Frege</li>
+</ul>
+<ul class="incremental">
+<li>Compiles to Java. Interop w/ Java via foreign function interface</li>
+</ul>
+</div>
+</div>
+<div id="what-is-haskell" class="slide section level1">
+<h1>What is Haskell?</h1>
+<ul class="incremental">
+<li>A standardized, general-purpose, purely functional, strongly and statically typed programming language with non-strict semantics</li>
+</ul>
+<ul class="incremental">
+<li>Features lazy evaluation and a crazy-powerful type system: global type inference (Hindley-Milner), higher-order functions, algebraic data types, type classes, pattern matching, higher-rank polymorphism, higher-kinded types</li>
+</ul>
+<ul class="incremental">
+<li>Friendly community: <a href="http://www.reddit.com/r/haskell/">Reddit</a>, <a href="https://mail.haskell.org/mailman/listinfo/haskell-cafe">Haskell Cafe mailing list</a>, FreeNode #haskell IRC</li>
+</ul>
+<ul class="incremental">
+<li>Books and Tutorials: <a href="http://learnyouahaskell.com">Learn You a Haskell</a>, <a href="http://book.realworldhaskell.org">Real World Haskell</a>, <a href="http://www.yesodweb.com/book">Developing Web Applications with Haskell and Yesod</a></li>
+</ul>
+<ul class="incremental">
+<li>Libraries and Dev: <a href="http://hackage.haskell.org">Hackage</a> (~6000 packages as of 2014), <a href="https://github.com/commercialhaskell/stack/wiki">Stack</a></li>
+</ul>
+<ul class="incremental">
+<li>Problem: It's addictive</li>
+</ul>
+</div>
+<div id="tour-of-frege-syntax---basic-functions" class="slide section level1">
+<h1>Tour of Frege syntax - Basic Functions</h1>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="fu">---</span> <span class="dt">Basic</span> syntax<span class="fu">.</span> <span class="dt">This</span> is a documentation comment
+<span class="kw">module</span> examples<span class="fu">.</span><span class="dt">Fibonacci</span> <span class="kw">where</span>
+
+<span class="fu">---</span> <span class="dt">The</span> <span class="ch">&#39;main&#39;</span> function
+<span class="ot">main ::</span> [<span class="dt">String</span>] <span class="ot">-&gt;</span> <span class="dt">IO</span> () <span class="co">-- type signature</span>
+main _ <span class="fu">=</span> println (take <span class="dv">10</span> (map fibonacci [<span class="dv">0</span><span class="fu">..</span>]))
+
+<span class="fu">---</span> <span class="dt">Here</span> is a function definition
+<span class="ot">fibonacci ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Integer</span> <span class="co">-- type signature</span>
+fibonacci <span class="dv">0</span> <span class="fu">=</span> <span class="dv">1</span> <span class="co">-- pattern matches</span>
+fibonacci <span class="dv">1</span> <span class="fu">=</span> <span class="dv">1</span>
+fibonacci n <span class="fu">|</span> n <span class="fu">&gt;=</span> <span class="dv">2</span> <span class="fu">=</span> fibonacci (n<span class="fu">-</span><span class="dv">1</span>) <span class="fu">+</span> fibonacci (n<span class="fu">-</span><span class="dv">2</span>) <span class="co">-- guards</span>
+fibonacci _ <span class="fu">=</span> <span class="dv">0</span> <span class="co">-- wildcards</span></code></pre></div>
+</div>
+<div id="infinite-data-structures-where-clauses" class="slide section level1">
+<h1>Infinite data structures, where clauses</h1>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="fu">---</span> <span class="dt">All</span> the <span class="dt">Fibonacci</span> numbers as a list, once and for all
+<span class="ot">fibs ::</span> [<span class="dt">Integer</span>]
+fibs <span class="fu">=</span> map f [<span class="dv">0</span><span class="fu">..</span>] <span class="kw">where</span>
+   f <span class="dv">0</span> <span class="fu">=</span> <span class="dv">1</span>
+   f <span class="dv">1</span> <span class="fu">=</span> <span class="dv">1</span>
+   f n <span class="fu">|</span> n <span class="fu">&gt;=</span> <span class="dv">2</span> <span class="fu">=</span> f (n <span class="fu">-</span> <span class="dv">1</span>) <span class="fu">+</span> f (n <span class="fu">-</span> <span class="dv">2</span>)
+   f _ <span class="fu">=</span> <span class="dv">0</span>
+
+<span class="ot">main ::</span> [<span class="dt">String</span>] <span class="ot">-&gt;</span> <span class="dt">IO</span> ()
+main _ <span class="fu">=</span> println (take <span class="dv">10</span> (filter (<span class="fu">&gt;</span> <span class="dv">500</span>) (map (<span class="fu">+</span><span class="dv">1</span>) fibs)))</code></pre></div>
+<p>Output: [611, 988, 1598, 2585, 4182, 6766, 10947, 17712, 28658, 46369]</p>
+</div>
+<div id="list-comprehensions-boolean-guards" class="slide section level1">
+<h1>List Comprehensions, boolean guards</h1>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- List comprehension and boolean guards</span>
+main _ <span class="fu">=</span> println (take <span class="dv">10</span> pythagoreanTriples)
+<span class="ot">pythagoreanTriples ::</span> [(<span class="dt">Integer</span>,<span class="dt">Integer</span>,<span class="dt">Integer</span>)]
+pythagoreanTriples <span class="fu">=</span> [ (a,b,c) <span class="fu">|</span> c <span class="ot">&lt;-</span> [<span class="dv">1</span><span class="fu">..</span>], a <span class="ot">&lt;-</span> [<span class="dv">1</span><span class="fu">..</span>c], b <span class="ot">&lt;-</span> [<span class="dv">1</span><span class="fu">..</span>c], 
+                                 a <span class="fu">&lt;=</span> b, a<span class="fu">^</span><span class="dv">2</span> <span class="fu">+</span> b<span class="fu">^</span><span class="dv">2</span> <span class="fu">==</span> c<span class="fu">^</span><span class="dv">2</span> ]</code></pre></div>
+<p>Output: [(3, 4, 5), (6, 8, 10), (5, 12, 13), (9, 12, 15), (8, 15, 17), (12, 16, 20), (7, 24, 25), (15, 20, 25), (10, 24, 26), (20, 21, 29)]</p>
+<ul class="incremental">
+<li>Observe how declarative this is: we are saying <em>what</em> the thing is, not <em>how</em> to construct it</li>
+</ul>
+<ul class="incremental">
+<li>We still have to limit the search space for <em>a</em> and <em>b</em> to something finite</li>
+</ul>
+</div>
+<div id="basic-io-in-frege" class="slide section level1">
+<h1>Basic I/O in Frege</h1>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- Basic I/O</span>
+<span class="ot">main ::</span> [<span class="dt">String</span>] <span class="ot">-&gt;</span> <span class="dt">IO</span> ()
+main _ <span class="fu">=</span> sneakyIO <span class="ot">`seq`</span> <span class="kw">do</span>
+   println <span class="st">&quot;Hello, I&#39;m Frege. What is your name?&quot;</span>
+   name <span class="ot">&lt;-</span> stdin<span class="fu">.</span>getLine
+   println (<span class="st">&quot;Nice to meet you, &quot;</span> <span class="fu">++</span> name <span class="fu">++</span> <span class="st">&quot;. Let&#39;s hang out!&quot;</span>)
+   
+<span class="ot">sneakyIO ::</span> <span class="dt">IO</span> ()
+sneakyIO <span class="fu">=</span> println <span class="st">&quot;I&#39;ll try to do IO too!&quot;</span></code></pre></div>
+<ul class="incremental">
+<li>The sneakyIO here is not so sneaky: it <em>does</em> get evaluated, but evaluation doesn't produce side-effects!</li>
+</ul>
+<ul class="incremental">
+<li>Anything that could potentially produce IO must have return type <em>IO a</em> for some <em>a</em>. This is <span style="color:red">statically enforced</span> by the type checker!</li>
+</ul>
+</div>
+<div id="function-composition" class="slide section level1">
+<h1>Function Composition</h1>
+<ul class="incremental">
+<li>The function composition operator is called .</li>
+</ul>
+<div class="incremental">
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">(.) ::</span> (b <span class="ot">-&gt;</span> c) <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> c)</code></pre></div>
+<p>Observe that <em>a</em>, <em>b</em>, and <em>c</em> here are type parameters, so . is polymorphic</p>
+<ul class="incremental">
+<li>Example:</li>
+</ul>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">take<span class="ot"> ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> [a] <span class="ot">-&gt;</span> [a]
+sort<span class="ot"> ::</span> [a] <span class="ot">-&gt;</span> [a]
+filter<span class="ot"> ::</span> (a <span class="ot">-&gt;</span> <span class="dt">Bool</span>) <span class="ot">-&gt;</span> [a] <span class="ot">-&gt;</span> [a]
+
+<span class="ot">someFn ::</span> [<span class="dt">Int</span>] <span class="ot">-&gt;</span> [<span class="dt">Int</span>]
+someFn <span class="fu">=</span> take <span class="dv">10</span> <span class="fu">.</span> sort <span class="fu">.</span> filter (<span class="fu">&gt;</span><span class="dv">20</span>)</code></pre></div>
+</div>
+</div>
+<div id="partial-evaluation-and-function-application" class="slide section level1">
+<h1>Partial evaluation and function application</h1>
+<ul class="incremental">
+<li>In Haskell (hence Frege), <em>every</em> function with an argument is unary, i.e. a -&gt; b -&gt; c is really a -&gt; (b -&gt; c)</li>
+</ul>
+<div class="incremental">
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">map<span class="ot"> ::</span> (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> [a] <span class="ot">-&gt;</span> [b]
+<span class="fu">*</span><span class="ot"> ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span>
+<span class="dv">2</span><span class="fu">*</span><span class="ot"> ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span>
+<span class="ot">($) ::</span> (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> b
+
+map (<span class="dv">2</span><span class="fu">*</span>) [<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>] <span class="fu">==</span> [<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>]
+
+main _ <span class="fu">=</span> println <span class="fu">$</span> map ((<span class="dv">2</span><span class="fu">*</span>) <span class="fu">.</span> (<span class="dv">2</span><span class="fu">*</span>)) [<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>]</code></pre></div>
+<p>Output: [4, 8, 12]</p>
+</div>
+</div>
+<div id="higher-order-functions" class="slide section level1">
+<h1>Higher-order functions</h1>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">applyUntil ::</span> (a <span class="ot">-&gt;</span> <span class="dt">Bool</span>) <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> a) <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> a
+applyUntil p f a <span class="fu">=</span> <span class="kw">if</span> (p a) <span class="kw">then</span> a <span class="kw">else</span> applyUntil p f (f a)
+
+<span class="ot">hailStone ::</span> <span class="dt">Integer</span> <span class="ot">-&gt;</span> <span class="dt">Integer</span>
+hailStone n <span class="fu">|</span> even n <span class="fu">=</span> n <span class="ot">`div`</span> <span class="dv">2</span>
+            <span class="fu">|</span> otherwise <span class="fu">=</span> <span class="dv">3</span><span class="fu">*</span>n <span class="fu">+</span> <span class="dv">1</span>
+
+main _ <span class="fu">=</span> println (applyUntil (<span class="fu">==</span> <span class="dv">1</span>) hailStone <span class="dv">31</span>)
+
+<span class="co">-- or</span>
+
+main _ <span class="fu">=</span> println ((takeWhile (<span class="fu">/=</span> <span class="dv">1</span>) <span class="fu">.</span> iterate hailStone) <span class="dv">31</span>)</code></pre></div>
+<p>Output: [31, 94, 47, 142, 71, 214, 107, 322, 161, 484, 242, 121, 364, 182, 91, 274, 137, 412, 206, 103, 310 ...</p>
+</div>
+<div id="data-types-in-frege" class="slide section level1">
+<h1>Data types in Frege</h1>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- Data structures</span>
+<span class="kw">data</span> <span class="dt">Maybe</span> a <span class="fu">=</span> <span class="dt">Just</span> a <span class="fu">|</span> <span class="dt">Nothing</span>
+<span class="kw">data</span> <span class="dt">Either</span> a b <span class="fu">=</span> <span class="dt">Left</span> a <span class="fu">|</span> <span class="dt">Right</span> b
+<span class="kw">data</span> <span class="dt">BinTree</span> a <span class="fu">=</span> <span class="dt">Empty</span> <span class="fu">|</span> <span class="dt">Leaf</span> a <span class="fu">|</span> <span class="dt">Branch</span> (<span class="dt">BinTree</span> a) (<span class="dt">BinTree</span> a)
+<span class="kw">data</span> <span class="dt">List</span> a <span class="fu">=</span> <span class="dt">Empty</span> <span class="fu">|</span> <span class="dt">Cons</span> a (<span class="dt">List</span> a)
+<span class="kw">data</span> <span class="dt">NEList</span> a <span class="fu">=</span> <span class="dt">Singleton</span> a <span class="fu">|</span> <span class="dt">Cons</span> a (<span class="dt">NEList</span> a)
+
+<span class="co">-- Type synonyms</span>
+<span class="kw">type</span> <span class="dt">MaybeInt</span> <span class="fu">=</span> <span class="dt">Maybe</span> <span class="dt">Int</span>
+<span class="kw">type</span> <span class="dt">PartialMap</span> a b <span class="fu">=</span> a <span class="ot">-&gt;</span> <span class="dt">Maybe</span> b
+
+<span class="co">-- Record types</span>
+<span class="kw">data</span> <span class="dt">MyRecord</span> <span class="fu">=</span> <span class="dt">MyRecord</span> {<span class="ot"> a ::</span> <span class="dt">String</span>,<span class="ot"> b ::</span> <span class="dt">Int</span> }
+main _ <span class="fu">=</span> println ( <span class="dt">MyRecord</span> { a <span class="fu">=</span> <span class="st">&quot;Hello&quot;</span>, b <span class="fu">=</span> <span class="dv">3</span> }<span class="fu">.</span>a )</code></pre></div>
+</div>
+<div id="typeclasses-i.e.-interfaces" class="slide section level1">
+<h1>Typeclasses (i.e. Interfaces)</h1>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- (a :+: b) :*: c == (a :*: c) :+: (b :*: c)</span>
+<span class="kw">class</span> <span class="dt">SemiNearRing</span> a <span class="kw">where</span>
+<span class="ot">   (:+:) ::</span> a <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> a
+<span class="ot">   (:*:) ::</span> a <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> a 
+
+<span class="kw">instance</span> <span class="dt">SemiNearRing</span> <span class="dt">Integer</span> <span class="kw">where</span>
+   x <span class="fu">:+:</span> y <span class="fu">=</span> x <span class="fu">+</span> y
+   x <span class="fu">:*:</span> y <span class="fu">=</span> x <span class="fu">*</span> y
+
+<span class="kw">instance</span> <span class="dt">SemiNearRing</span> [<span class="dt">String</span>] <span class="kw">where</span>
+   xs <span class="fu">:+:</span> ys <span class="fu">=</span> xs <span class="fu">++</span> ys
+   xs <span class="fu">:*:</span> ys <span class="fu">=</span> [ xi <span class="fu">++</span> <span class="st">&quot; &quot;</span> <span class="fu">++</span> yj <span class="fu">|</span> xi <span class="ot">&lt;-</span> xs, yj <span class="ot">&lt;-</span> ys]
+
+main _ <span class="fu">=</span> println <span class="fu">$</span> [<span class="st">&quot;twenty&quot;</span>, <span class="st">&quot;thirty&quot;</span>] <span class="fu">:*:</span> [<span class="st">&quot;one&quot;</span>, <span class="st">&quot;two&quot;</span>, <span class="st">&quot;three&quot;</span>]
+<span class="co">-- Output: [&quot;twenty one&quot;, &quot;twenty two&quot;, &quot;twenty three&quot;,</span>
+<span class="co">--          &quot;thirty one&quot;, &quot;thirty two&quot;, &quot;thirty three&quot;]</span></code></pre></div>
+</div>
+<div id="a-method-for-dealing-with-failure" class="slide section level1">
+<h1>A Method for Dealing with Failure</h1>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- Ordinary function composition</span>
+<span class="ot">(.) ::</span> (b <span class="ot">-&gt;</span> c) <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> c)
+
+<span class="co">-- Composition with possibility of failure at each step </span>
+<span class="ot">(&lt;=&lt;) ::</span> (b <span class="ot">-&gt;</span> <span class="dt">Maybe</span> c) <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> <span class="dt">Maybe</span> b) <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> <span class="dt">Maybe</span> c)
+
+<span class="co">-- A transformation that only works on Just values, otherwise Nothing</span>
+fmap<span class="ot"> ::</span> (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> <span class="dt">Maybe</span> a <span class="ot">-&gt;</span> <span class="dt">Maybe</span> b
+
+<span class="co">-- A flattening operation</span>
+<span class="ot">join ::</span> <span class="dt">Maybe</span> (<span class="dt">Maybe</span> a) <span class="ot">-&gt;</span> <span class="dt">Maybe</span> a
+
+<span class="co">-- Our definition of &lt;=&lt;</span>
+(g <span class="fu">&lt;=</span> f) a <span class="fu">=</span> join (fmap g (f<span class="ot"> a ::</span> <span class="dt">Maybe</span> b)<span class="ot"> ::</span> <span class="dt">Maybe</span> <span class="dt">Maybe</span> c)
+
+<span class="co">-- ... And now we can compose functions that can fail!</span>
+return<span class="ot"> ::</span> a <span class="ot">-&gt;</span> <span class="dt">Maybe</span> a; return a <span class="fu">=</span> <span class="dt">Just</span> a</code></pre></div>
+</div>
+<div id="a-method-for-dealing-with-failure-2" class="slide section level1">
+<h1>A Method for Dealing with Failure (2)</h1>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- Definition of join and return for Maybe a</span>
+join (<span class="dt">Just</span> (<span class="dt">Just</span> a)) <span class="fu">=</span> <span class="dt">Just</span> a
+join _ <span class="fu">=</span> <span class="dt">Nothing</span>
+return a <span class="fu">=</span> <span class="dt">Just</span> a
+
+<span class="co">-- laws:</span>
+<span class="co">-- join is associative: join . join == join . fmap join</span>
+<span class="co">-- return is identity: join . fmap return == join . return == id</span>
+
+<span class="co">-- Checking identity laws:</span>
+(join <span class="fu">.</span> fmap return)(<span class="dt">Just</span> a) <span class="fu">==</span> join (<span class="dt">Just</span> (<span class="dt">Just</span> a)) <span class="fu">==</span> <span class="dt">Just</span> a <span class="fu">==</span>
+join (<span class="dt">Just</span> (<span class="dt">Just</span> a)) <span class="fu">=</span> (join <span class="fu">.</span> return)(<span class="dt">Just</span> a)
+
+(join <span class="fu">.</span> fmap return)(<span class="dt">Nothing</span>) <span class="fu">==</span> join (<span class="dt">Just</span> (<span class="dt">Nothing</span>)) <span class="fu">==</span> <span class="dt">Nothing</span> <span class="fu">==</span>
+join (<span class="dt">Just</span> (<span class="dt">Nothing</span>)) <span class="fu">=</span> (join <span class="fu">.</span> return)(<span class="dt">Nothing</span>)
+
+<span class="co">-- Any such thing with join and return satisfying these laws is a Monad</span></code></pre></div>
+</div>
+<div id="memoization-without-state" class="slide section level1">
+<h1>Memoization without State</h1>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- Build an immutable Java array of Integers by reusing </span>
+<span class="co">-- values at previously computed indices (memoized array </span>
+<span class="co">-- construction)</span>
+<span class="ot">fibMemo ::</span> <span class="dt">JArray</span> <span class="dt">Integer</span>
+fibMemo <span class="fu">=</span> arrayCache f <span class="dv">100</span> <span class="kw">where</span>
+   f <span class="dv">0</span> array <span class="fu">=</span> <span class="dv">1</span>
+   f <span class="dv">1</span> array <span class="fu">=</span> <span class="dv">1</span>
+   f n array <span class="fu">=</span> array<span class="fu">.</span>[n<span class="fu">-</span><span class="dv">1</span>] <span class="fu">+</span> array<span class="fu">.</span>[n<span class="fu">-</span><span class="dv">2</span>]
+
+main _ <span class="fu">=</span> println <span class="fu">$</span> fibMemo <span class="ot">`elemAt`</span> <span class="dv">99</span>
+<span class="co">-- Output: 354224848179261915075</span></code></pre></div>
+<ul class="incremental">
+<li>Credit: Ingo, via personal correspondence on Github</li>
+</ul>
+</div>
+<div id="foreign-function-interface-to-java" class="slide section level1">
+<h1>Foreign Function Interface to Java</h1>
+<ul class="incremental">
+<li>Data structures in Frege are immutable with pure operations, but Java data structures are <span style="color:blue">mutable</span> and operations have <span style="color:red">side-effects</span></li>
+</ul>
+<ul class="incremental">
+<li>In Frege, each mutable Java data structure is given its own local &quot;state thread&quot;</li>
+</ul>
+<ul class="incremental">
+<li>Within each state thread we can perform all the mutations we want, and then freeze to a final immutable result</li>
+</ul>
+<ul class="incremental">
+<li>This means that we have to write <em>bindings</em> to Java libraries. Frege is still relatively young: bindings do not yet exist for many popular libraries</li>
+</ul>
+<ul class="incremental">
+<li>This is an opportunity to work on some bindings!</li>
+</ul>
+</div>
+<div id="some-inspiration" class="slide section level1">
+<h1>Some inspiration</h1>
+<blockquote>
+<p>&quot;Those who want really reliable software will discover that they must find means of avoiding the majority of bugs to start with, and as a result the programming process will become cheaper.&quot;</p>
+</blockquote>
+<div class="incremental">
+<blockquote>
+<p>&quot;[T]he purpose of abstracting is not to be vague, but to create a new semantic level in which one can be absolutely precise.&quot;</p>
+</blockquote>
+</div>
+<div class="incremental">
+<blockquote>
+<p>The Humble Programmer, Edsger W. Dijkstra, 1972</p>
+</blockquote>
+</div>
+<div class="incremental">
+<p>Slogan: &quot;OO programming helps you to manage state. Functional programming helps you to eliminate state. Pure functional programming helps you to eliminate unintended side-effects.&quot;</p>
+</div>
+</div>
+<div id="references" class="slide section level1">
+<h1>References</h1>
+<ul>
+<li><p><a href="web.mit.edu/frege-lang_v3.21/Introduction_Frege.pdf">Ingo's Introduction to Frege</a></p></li>
+<li><p><a href="https://github.com/talios/frege-maven-plugin">Frege Maven Plug-in</a></p></li>
+<li><p><a href="https://github.com/Frege/eclipse-plugin/wiki/fregIDE-Tutorial">Frege IDE Plug-in</a></p></li>
+</ul>
+</div>
+<div id="questions" class="slide section level1">
+<h1>Questions?</h1>
+</div>
+</body>
+</html>
