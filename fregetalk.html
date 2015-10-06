@@ -46,8 +46,10 @@ code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Ann
 code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
 code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
   </style>
-  <link rel="stylesheet" type="text/css" media="screen, projection, print" href="slidy.css" />
-  <script src="slidy.js" charset="utf-8" type="text/javascript"></script>
+  <link rel="stylesheet" type="text/css" media="screen, projection, print"
+    href="http://www.w3.org/Talks/Tools/Slidy2/styles/slidy.css" />
+  <script src="http://www.w3.org/Talks/Tools/Slidy2/scripts/slidy.js"
+    charset="utf-8" type="text/javascript"></script>
 </head>
 <body>
 <div class="slide titlepage">
@@ -56,13 +58,13 @@ on the JVM with Frege</h1>
   <p class="author">
 Michael D. Misamore
   </p>
-  <p class="date">Sept 1, 2015</p>
+  <p class="date">Oct 20, 2015</p>
 </div>
 <div id="some-history" class="slide section level1">
 <h1>Some History</h1>
 <p><img src="church.jpg" style="height: 5em; float:right"> <img src="turing.jpg" style="height: 5em; float:right"></p>
 <ul class="incremental">
-<li>In the beginning (1936), Alan Turing invented his &quot;a-machines&quot; for formalizing computations<br />
+<li>In the beginning (1936), Alan Turing invented his machines for formalizing computations<br />
 </li>
 </ul>
 <ul class="incremental">
@@ -72,7 +74,7 @@ Michael D. Misamore
 <li>Church and Turing proved that the same computations can be expressed in either system.</li>
 </ul>
 <ul class="incremental">
-<li>Imperative programming languages use Turing's machines as basis; functional programming languages use Church's λ-calculus.</li>
+<li>Imperative programming languages (e.g. Fortran, C, Java) use Turing's machines as basis; functional programming languages (e.g. Lisp, SML, Haskell) use Church's λ-calculus.</li>
 </ul>
 </div>
 <div id="what-is-functional-programming" class="slide section level1">
@@ -86,13 +88,13 @@ Michael D. Misamore
 <div class="incremental">
 <div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">(.) ::</span> (b <span class="ot">-&gt;</span> c) <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> (a <span class="ot">-&gt;</span> c)</code></pre></div>
 <ul class="incremental">
-<li>Extensive use of higher-order functions (i.e. functions that take other functions as arguments)</li>
-</ul>
-<ul class="incremental">
 <li>The output of any function depends <em>only</em> on its input, and not on any other state</li>
 </ul>
 <ul class="incremental">
-<li>Program execution consists of evaluating one (typically huge) expression</li>
+<li>Program execution consists of evaluating expressions, not executing statements</li>
+</ul>
+<ul class="incremental">
+<li>Examples of imperative languages with some functional features: C#, Java 8, Scala, JavaScript. These are not functional programming languages.</li>
 </ul>
 </div>
 </div>
@@ -102,16 +104,16 @@ Michael D. Misamore
 <li>Everything in Functional Programming, plus ...</li>
 </ul>
 <ul class="incremental">
-<li>Evaluating expressions does not cause side-effects (e.g. accessing DB, printing to screen, writing files, launching missiles, etc.)</li>
+<li>Evaluating expressions does not cause side-effects (i.e. observable interactions with state or the outside world)</li>
 </ul>
 <ul class="incremental">
 <li>In any context, evaluating an expression more than once always gives the same answer</li>
 </ul>
 <ul class="incremental">
-<li>Variable assignment doesn't exist; all data structures are <em>immutable</em> and <em>persistent</em></li>
+<li>Variable (re)assignment doesn't exist; all data structures are <em>immutable</em> and <em>persistent</em></li>
 </ul>
 <ul class="incremental">
-<li>A totally pure functional program does nothing but <span style="color:red">generate heat</span></li>
+<li>Expressions representing I/O actions are specially labeled. Evaluating these does <em>not</em> cause I/O to occur.</li>
 </ul>
 </div>
 <div id="purity---why-it-matters" class="slide section level1">
@@ -135,24 +137,6 @@ public class Whoops {
 bash-3.2$ java Whoops
 3 == 6</code></pre>
 </div>
-<div id="disadvantages-of-pure-functional-programming" class="slide section level1">
-<h1>Disadvantages of Pure Functional Programming</h1>
-<ul class="incremental">
-<li>Radically different than imperative and object-oriented programming (e.g. no variable assignment, no objects, no for- or while-loops)</li>
-</ul>
-<ul class="incremental">
-<li>Lazy evaluation can lead to space leaks that are difficult to diagnose</li>
-</ul>
-<ul class="incremental">
-<li>Learning to think about everything in terms of composition of higher-order functions takes time</li>
-</ul>
-<ul class="incremental">
-<li>Producing fast immutable data structures is still an active research area</li>
-</ul>
-<ul class="incremental">
-<li>Most algorithms in literature are expressed in imperative terms</li>
-</ul>
-</div>
 <div id="advantages-of-pure-functional-programming" class="slide section level1">
 <h1>Advantages of Pure Functional Programming?</h1>
 <ul class="incremental">
@@ -162,13 +146,34 @@ bash-3.2$ java Whoops
 <li>This also enables <em>safe parallelism</em>: evaluating expressions in parallel is no different than evaluating them in (any) order</li>
 </ul>
 <ul class="incremental">
-<li>We don't have to worry about global state, because there isn't any!</li>
+<li>No shared global state- no global state at all!</li>
 </ul>
 <ul class="incremental">
-<li>All squares are rectangles (since everything is immutable)</li>
+<li>Don't have to worry about object lifetimes or null pointers</li>
 </ul>
 <ul class="incremental">
-<li>We also don't have to worry about object lifetimes or null pointers</li>
+<li>Unit testing generally easier: one input, one output</li>
+</ul>
+<ul class="incremental">
+<li>Encourages clean separation of pure business logic from I/O</li>
+</ul>
+</div>
+<div id="disadvantages-of-pure-functional-programming" class="slide section level1">
+<h1>Disadvantages of Pure Functional Programming</h1>
+<ul class="incremental">
+<li>Radically different than imperative and object-oriented programming (e.g. no variable assignment, no objects, no for- or while-loops)</li>
+</ul>
+<ul class="incremental">
+<li>Most algorithms in literature are expressed in imperative terms (e.g. graph algorithms)</li>
+</ul>
+<ul class="incremental">
+<li>Producing fast immutable data structures is still an active research area</li>
+</ul>
+<ul class="incremental">
+<li>Bindings are required to interface with impure languages (e.g. Java)</li>
+</ul>
+<ul class="incremental">
+<li>Non-strict evaluation strategies, if used, can result in undesirable space-leaks</li>
 </ul>
 </div>
 <div id="what-is-frege" class="slide section level1">
@@ -177,39 +182,38 @@ bash-3.2$ java Whoops
 <li>A purely functional, strongly and statically typed, <em>lazily evaluated</em> programming language for the JVM. Modeled on Haskell, which doesn't currently run on the JVM.</li>
 </ul>
 <ul class="incremental">
-<li>Lazy evaluation: a non-strict, <em>call-by-need</em> evaluation strategy implemented using thunks. The special value ⊥ = undefined inhabits every type.</li>
+<li>Lazy evaluation: a non-strict, <em>call-by-need</em> evaluation strategy implemented using <em>thunks</em></li>
+</ul>
+<ul class="incremental">
+<li>A <em>thunk</em> is just a placeholder for an unevaluated expression</li>
 </ul>
 <div class="incremental">
-<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">f ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> (<span class="dt">Int</span>,<span class="dt">Int</span>)
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">g ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span>
+g x <span class="fu">=</span> g (x<span class="fu">+</span><span class="dv">1</span>)
+<span class="ot">f ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> (<span class="dt">Int</span>,<span class="dt">Int</span>)
 f x y z <span class="fu">=</span> (x, y)</code></pre></div>
-<p>Then &quot;f 1 2 3&quot; and &quot;f 1 2 undefined&quot; both give (1, 2)</p>
-<ul>
-<li>Created by Ingo Wechsung in 2011. Development ongoing. Compiler written in Frege</li>
-</ul>
-<ul class="incremental">
-<li>Compiles to Java. Interop w/ Java via foreign function interface</li>
-</ul>
+<p>Then &quot;f 1 2 3&quot; and &quot;f 1 2 (g 1)&quot; both give (1, 2) even though g 1 diverges!</p>
 </div>
 </div>
-<div id="what-is-haskell" class="slide section level1">
-<h1>What is Haskell?</h1>
+<div id="what-is-frege-cont.d" class="slide section level1">
+<h1>What is Frege (cont.d)?</h1>
 <ul class="incremental">
-<li>A standardized, general-purpose, purely functional, strongly and statically typed programming language with non-strict semantics</li>
+<li>Created by Ingo Wechsung in 2011. Development ongoing. Compiler written in Frege. Compiles to Java with a builtin lightweight runtime system.</li>
 </ul>
 <ul class="incremental">
-<li>Features lazy evaluation and a crazy-powerful type system: global type inference (Hindley-Milner), higher-order functions, algebraic data types, type classes, pattern matching, higher-rank polymorphism, higher-kinded types</li>
+<li>Features a crazy-powerful type system: Hindley-Milner type inference, higher-order functions, algebraic data types, Haskell-style type classes, pattern matching, higher-rank polymorphism</li>
 </ul>
 <ul class="incremental">
-<li>Friendly community: <a href="http://www.reddit.com/r/haskell/">Reddit</a>, <a href="https://mail.haskell.org/mailman/listinfo/haskell-cafe">Haskell Cafe mailing list</a>, FreeNode #haskell IRC</li>
+<li>Friendly community: <a href="http://github.com/Frege/frege">Frege Homepage</a></li>
 </ul>
 <ul class="incremental">
-<li>Books and Tutorials: <a href="http://learnyouahaskell.com">Learn You a Haskell</a>, <a href="http://book.realworldhaskell.org">Real World Haskell</a>, <a href="http://www.yesodweb.com/book">Developing Web Applications with Haskell and Yesod</a></li>
+<li>Interop with Java via a foreign function interface: <a href="http://mmhelloworld.github.io/blog/2013/07/10/frege-hello-java/">Frege FFI Example</a></li>
 </ul>
 <ul class="incremental">
-<li>Libraries and Dev: <a href="http://hackage.haskell.org">Hackage</a> (~6000 packages as of 2014), <a href="https://github.com/commercialhaskell/stack/wiki">Stack</a></li>
+<li>Syntax is very close to Haskell, so by learning Frege you are learning Haskell (which is an excellent idea)</li>
 </ul>
 <ul class="incremental">
-<li>Problem: It's addictive</li>
+<li>Problem: Functional programming is addictive!</li>
 </ul>
 </div>
 <div id="tour-of-frege-syntax---basic-functions" class="slide section level1">
@@ -272,7 +276,7 @@ sneakyIO <span class="fu">=</span> println <span class="st">&quot;I&#39;ll try t
 <li>The sneakyIO here is not so sneaky: it <em>does</em> get evaluated, but evaluation doesn't produce side-effects!</li>
 </ul>
 <ul class="incremental">
-<li>Anything that could potentially produce IO must have return type <em>IO a</em> for some <em>a</em>. This is <span style="color:red">statically enforced</span> by the type checker!</li>
+<li>Expressions that could potentially produce IO must have return type <em>IO a</em> for some <em>a</em>. This is <span style="color:red">statically enforced</span> by the type checker!</li>
 </ul>
 </div>
 <div id="function-composition" class="slide section level1">
@@ -293,6 +297,24 @@ filter<span class="ot"> ::</span> (a <span class="ot">-&gt;</span> <span class="
 <span class="ot">someFn ::</span> [<span class="dt">Int</span>] <span class="ot">-&gt;</span> [<span class="dt">Int</span>]
 someFn <span class="fu">=</span> take <span class="dv">10</span> <span class="fu">.</span> sort <span class="fu">.</span> filter (<span class="fu">&gt;</span><span class="dv">20</span>)</code></pre></div>
 </div>
+</div>
+<div id="function-composition---javaish-version" class="slide section level1">
+<h1>Function Composition - Java(ish) version</h1>
+<pre>
+// Java-style signature and implementation for (.)
+Function&lt;A,C&gt; dot( Function&lt;B,C&gt; g, Function&lt;A,B&gt; f ) {
+   return new Function&lt;A,C&gt;() {
+      C apply( A a ){
+         return g.apply( f.apply( a ) );
+      }
+   };
+}
+
+// Note how we explicitly compose two functions at a time
+List&lt;int&gt; someFn( List&lt;int&gt; l ) {
+  return dot( take(10), dot(sort, filter) ).apply(l);
+}
+</pre>
 </div>
 <div id="partial-evaluation-and-function-application" class="slide section level1">
 <h1>Partial evaluation and function application</h1>
@@ -463,6 +485,7 @@ main _ <span class="fu">=</span> println <span class="fu">$</span> fibMemo <span
 <li><p><a href="web.mit.edu/frege-lang_v3.21/Introduction_Frege.pdf">Ingo's Introduction to Frege</a></p></li>
 <li><p><a href="https://github.com/talios/frege-maven-plugin">Frege Maven Plug-in</a></p></li>
 <li><p><a href="https://github.com/Frege/eclipse-plugin/wiki/fregIDE-Tutorial">Frege IDE Plug-in</a></p></li>
+<li><p><a href="http://learnyouahaskell.com/">Learn You A Haskell</a></p></li>
 </ul>
 </div>
 <div id="questions" class="slide section level1">

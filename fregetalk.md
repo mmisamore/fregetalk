@@ -1,14 +1,14 @@
 % Pure Functional Programming\
 on the JVM with Frege 
 % Michael D. Misamore 
-% Sept 1, 2015 
+% Oct 20, 2015 
 
 # Some History
 
 <img src="church.jpg" style="height: 5em; float:right">
 <img src="turing.jpg" style="height: 5em; float:right">
 
-> - In the beginning (1936), Alan Turing invented his "a-machines" for formalizing computations\
+> - In the beginning (1936), Alan Turing invented his machines for formalizing computations\
 
 > - Around the same time (1936), Alonzo Church completed work on a totally different model for
 formalizing computations: the &lambda;-calculus
@@ -16,8 +16,9 @@ formalizing computations: the &lambda;-calculus
 > - Church and Turing proved that the same computations can be expressed in
 either system. 
 
-> - Imperative programming languages use Turing's machines as basis; functional
-programming languages use Church's &lambda;-calculus.
+> - Imperative programming languages (e.g. Fortran, C, Java) use Turing's
+machines as basis; functional programming languages (e.g. Lisp, SML, Haskell) use
+Church's &lambda;-calculus.
 
 
 # What is Functional Programming? 
@@ -32,29 +33,29 @@ answer"). Order of expressions and declarations doesn't matter
 (.) :: (b -> c) -> (a -> b) -> (a -> c)
 ```
 
-> - Extensive use of higher-order functions (i.e. functions that take other
-functions as arguments)
-
 > - The output of any function depends *only* on its input, and not on any other state
 
-> - Program execution consists of evaluating one (typically huge) expression 
+> - Program execution consists of evaluating expressions, not executing statements
+
+> - Examples of imperative languages with some functional features: C#, Java 8, 
+Scala, JavaScript. These are not functional programming languages.
 
 
 # What is Pure Functional Programming?
 
 > - Everything in Functional Programming, plus ...
 
-> - Evaluating expressions does not cause side-effects (e.g.
-accessing DB, printing to screen, writing files, launching missiles, etc.)
+> - Evaluating expressions does not cause side-effects (i.e. observable interactions 
+with state or the outside world)
 
 > - In any context, evaluating an expression more than once always gives the
 same answer
 
-> - Variable assignment doesn't exist; all data structures are *immutable* and
+> - Variable (re)assignment doesn't exist; all data structures are *immutable* and
 *persistent*
 
-> - A totally pure functional program does nothing but <span
-style="color:red">generate heat</span>
+> - Expressions representing I/O actions are specially labeled. Evaluating these
+does *not* cause I/O to occur.
 
 
 # Purity - Why it Matters
@@ -79,21 +80,6 @@ style="color:red">generate heat</span>
     3 == 6
 
 
-# Disadvantages of Pure Functional Programming
-
-> - Radically different than imperative and object-oriented programming (e.g. no
-variable assignment, no objects, no for- or while-loops)
-
-> - Lazy evaluation can lead to space leaks that are difficult to diagnose
-
-> - Learning to think about everything in terms of composition of higher-order
-functions takes time  
-
-> - Producing fast immutable data structures is still an active research area
-
-> - Most algorithms in literature are expressed in imperative terms 
-
-
 # Advantages of Pure Functional Programming?
 
 > - (Referential transparency) In any context, evaluating a pure expression
@@ -102,11 +88,27 @@ functions takes time
 > - This also enables *safe parallelism*: evaluating expressions in parallel
 is no different than evaluating them in (any) order
 
-> - We don't have to worry about global state, because there isn't any!
+> - No shared global state- no global state at all!
 
-> - All squares are rectangles (since everything is immutable)
+> - Don't have to worry about object lifetimes or null pointers
 
-> - We also don't have to worry about object lifetimes or null pointers
+> - Unit testing generally easier: one input, one output
+
+> - Encourages clean separation of pure business logic from I/O
+
+
+# Disadvantages of Pure Functional Programming
+
+> - Radically different than imperative and object-oriented programming (e.g. no
+variable assignment, no objects, no for- or while-loops)
+
+> - Most algorithms in literature are expressed in imperative terms (e.g. graph algorithms)
+
+> - Producing fast immutable data structures is still an active research area
+
+> - Bindings are required to interface with impure languages (e.g. Java) 
+
+> - Non-strict evaluation strategies, if used, can result in undesirable space-leaks
 
 
 # What is Frege?
@@ -116,41 +118,38 @@ programming language for the JVM.  Modeled on Haskell, which doesn't currently
 run on the JVM.
 
 > - Lazy evaluation: a non-strict, *call-by-need* evaluation strategy implemented
-using thunks. The special value &bot; = undefined inhabits every type.
+using *thunks*
+
+> - A *thunk* is just a placeholder for an unevaluated expression
 
 . . .
 ```haskell
+g :: Int -> Int
+g x = g (x+1)
 f :: Int -> Int -> Int -> (Int,Int)
 f x y z = (x, y)
 ```
-Then "f 1 2 3" and "f 1 2 undefined" both give (1, 2)
-
-- Created by Ingo Wechsung in 2011. Development ongoing. Compiler written in
-Frege
-
-> - Compiles to Java. Interop w/ Java via foreign function interface
+Then "f 1 2 3" and "f 1 2 (g 1)" both give (1, 2) even though g 1 diverges!
 
 
-# What is Haskell?
+# What is Frege (cont.d)?
 
-> - A standardized, general-purpose, purely functional, strongly and statically
-typed programming language with non-strict semantics
+> - Created by Ingo Wechsung in 2011. Development ongoing. Compiler written in
+Frege. Compiles to Java with a builtin lightweight runtime system.
 
-> - Features lazy evaluation and a crazy-powerful type system: global type
-inference (Hindley-Milner), higher-order functions, algebraic data types, type
-classes, pattern matching, higher-rank polymorphism, higher-kinded types
+> - Features a crazy-powerful type system: Hindley-Milner type inference, 
+higher-order functions, algebraic data types, Haskell-style type classes,
+pattern matching, higher-rank polymorphism
 
-> - Friendly community: [Reddit](http://www.reddit.com/r/haskell/), 
-[Haskell Cafe mailing list](https://mail.haskell.org/mailman/listinfo/haskell-cafe), FreeNode #haskell IRC 
+> - Friendly community: [Frege Homepage](http://github.com/Frege/frege) 
 
-> - Books and Tutorials: [Learn You a Haskell](http://learnyouahaskell.com),
-[Real World Haskell](http://book.realworldhaskell.org), [Developing Web
-Applications with Haskell and Yesod](http://www.yesodweb.com/book)
+> - Interop with Java via a foreign function interface: 
+[Frege FFI Example](http://mmhelloworld.github.io/blog/2013/07/10/frege-hello-java/)
 
-> - Libraries and Dev: [Hackage](http://hackage.haskell.org) (~6000 packages as
-of 2014), [Stack](https://github.com/commercialhaskell/stack/wiki)
+> - Syntax is very close to Haskell, so by learning Frege you are learning
+Haskell (which is an excellent idea)
 
-> - Problem: It's addictive 
+> - Problem: Functional programming is addictive!
 
 
 # Tour of Frege syntax - Basic Functions
@@ -222,7 +221,7 @@ sneakyIO = println "I'll try to do IO too!"
 > - The sneakyIO here is not so sneaky: it *does* get evaluated, but evaluation
 doesn't produce side-effects!
 
-> - Anything that could potentially produce IO must have return type *IO a* for some
+> - Expressions that could potentially produce IO must have return type *IO a* for some
 *a*. This is <span style="color:red">statically enforced</span> by the type checker!
 
 
@@ -245,6 +244,24 @@ filter :: (a -> Bool) -> [a] -> [a]
 someFn :: [Int] -> [Int]
 someFn = take 10 . sort . filter (>20)
 ```
+
+# Function Composition - Java(ish) version
+
+<pre>
+// Java-style signature and implementation for (.)
+Function&lt;A,C&gt; dot( Function&lt;B,C&gt; g, Function&lt;A,B&gt; f ) {
+   return new Function&lt;A,C&gt;() {
+      C apply( A a ){
+         return g.apply( f.apply( a ) );
+      }
+   };
+}
+
+// Note how we explicitly compose two functions at a time
+List&lt;int&gt; someFn( List&lt;int&gt; l ) {
+  return dot( take(10), dot(sort, filter) ).apply(l);
+}
+</pre>
 
 # Partial evaluation and function application
 
@@ -436,6 +453,8 @@ unintended side-effects."
 * [Frege Maven Plug-in](https://github.com/talios/frege-maven-plugin)
 
 * [Frege IDE Plug-in](https://github.com/Frege/eclipse-plugin/wiki/fregIDE-Tutorial)
+
+* [Learn You A Haskell](http://learnyouahaskell.com/)
 
 
 # Questions?
