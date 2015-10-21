@@ -94,7 +94,7 @@ Michael D. Misamore
 <li>Program execution consists of evaluating expressions, not executing statements</li>
 </ul>
 <ul class="incremental">
-<li>Examples of imperative languages with some functional features: C#, Java 8, Scala, JavaScript. These are not functional programming languages.</li>
+<li>Examples of imperative/OO languages with some functional features: C#, Java 8, Groovy, Scala, JavaScript. These are not functional programming languages.</li>
 </ul>
 </div>
 </div>
@@ -104,7 +104,7 @@ Michael D. Misamore
 <li>Everything in Functional Programming, plus ...</li>
 </ul>
 <ul class="incremental">
-<li>Evaluating expressions does not cause side-effects (i.e. observable interactions with state or the outside world)</li>
+<li>Evaluating expressions does not cause side-effects (i.e. <span style="color:red">observable interactions with state or the outside world</span>)</li>
 </ul>
 <ul class="incremental">
 <li>In any context, evaluating an expression more than once always gives the same answer</li>
@@ -167,7 +167,7 @@ bash-3.2$ java Whoops
 <li>Most algorithms in literature are expressed in imperative terms (e.g. graph algorithms)</li>
 </ul>
 <ul class="incremental">
-<li>Producing fast immutable data structures is still an active research area</li>
+<li>Algorithms that ostensibly depend on order of evaluation have to be expressed differently (but this often removes accidental complexity)</li>
 </ul>
 <ul class="incremental">
 <li>Bindings are required to interface with impure languages (e.g. Java)</li>
@@ -182,7 +182,7 @@ bash-3.2$ java Whoops
 <li>A purely functional, strongly and statically typed, <em>lazily evaluated</em> programming language for the JVM. Modeled on Haskell, which doesn't currently run on the JVM.</li>
 </ul>
 <ul class="incremental">
-<li>Lazy evaluation: a non-strict, <em>call-by-need</em> evaluation strategy implemented using <em>thunks</em></li>
+<li>Lazy evaluation: a non-strict, <em>call-by-need</em> strategy for evaluating expressions. Implemented using <em>thunks</em></li>
 </ul>
 <ul class="incremental">
 <li>A <em>thunk</em> is just a placeholder for an unevaluated expression</li>
@@ -204,7 +204,7 @@ f x y z <span class="fu">=</span> (x, y)</code></pre></div>
 <li>Features a crazy-powerful type system: Hindley-Milner type inference, higher-order functions, algebraic data types, Haskell-style type classes, pattern matching, higher-rank polymorphism</li>
 </ul>
 <ul class="incremental">
-<li>Friendly community: <a href="http://github.com/Frege/frege">Frege Homepage</a></li>
+<li>Documentation: <a href="http://github.com/Frege/frege">Frege Homepage</a>, <a href="http://www.frege-lang.org/doc/fregedoc.html">Standard Library API</a></li>
 </ul>
 <ul class="incremental">
 <li>Interop with Java via a foreign function interface: <a href="http://mmhelloworld.github.io/blog/2013/07/10/frege-hello-java/">Frege FFI Example</a></li>
@@ -276,7 +276,27 @@ sneakyIO <span class="fu">=</span> println <span class="st">&quot;I&#39;ll try t
 <li>The sneakyIO here is not so sneaky: it <em>does</em> get evaluated, but evaluation doesn't produce side-effects!</li>
 </ul>
 <ul class="incremental">
-<li>Expressions that could potentially produce IO must have return type <em>IO a</em> for some <em>a</em>. This is <span style="color:red">statically enforced</span> by the type checker!</li>
+<li>Expressions that could potentially produce IO must have return type <em>IO a</em> for some <em>a</em>. This condition is <span style="color:red">statically enforced</span> by the type checker!</li>
+</ul>
+</div>
+<div id="anonymous-functions-aka-lambdas" class="slide section level1">
+<h1>Anonymous Functions (aka lambdas)</h1>
+<ul class="incremental">
+<li>Java 8 has these too (great!), but it's still not a functional programming language</li>
+</ul>
+<ul class="incremental">
+<li><div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- Filter a list of as using some lambda p</span>
+filter<span class="ot"> ::</span> (a <span class="ot">-&gt;</span> <span class="dt">Bool</span>) <span class="ot">-&gt;</span> [a] <span class="ot">-&gt;</span> [a]
+filter p [] <span class="fu">=</span> []
+filter p (a<span class="fu">:</span>as) <span class="fu">=</span> <span class="kw">if</span> p a <span class="kw">then</span> a<span class="fu">:</span>(filter p as) <span class="kw">else</span> filter p as 
+<span class="co">-- e.g. passing a lambda</span>
+filter (\x <span class="ot">-&gt;</span> x <span class="fu">&gt;</span> <span class="dv">10</span>) [<span class="dv">1</span><span class="fu">..</span><span class="dv">100</span>] <span class="co">-- returns [11..100]</span></code></pre></div></li>
+</ul>
+<ul class="incremental">
+<li>filter p . filter q = filter (\x -&gt; p x &amp;&amp; q x)</li>
+</ul>
+<ul class="incremental">
+<li>Similarly: filter p . filter q = filter q . filter p (useful when p or q is harder to compute than the other). Such tricks lead to <em>equational reasoning</em> about program structure</li>
 </ul>
 </div>
 <div id="function-composition" class="slide section level1">
@@ -290,12 +310,12 @@ sneakyIO <span class="fu">=</span> println <span class="st">&quot;I&#39;ll try t
 <ul class="incremental">
 <li>Example:</li>
 </ul>
-<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">take<span class="ot"> ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> [a] <span class="ot">-&gt;</span> [a]
-sort<span class="ot"> ::</span> [a] <span class="ot">-&gt;</span> [a]
-filter<span class="ot"> ::</span> (a <span class="ot">-&gt;</span> <span class="dt">Bool</span>) <span class="ot">-&gt;</span> [a] <span class="ot">-&gt;</span> [a]
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="ot">decompress ::</span> <span class="dt">InputStream</span> <span class="ot">-&gt;</span> [<span class="dt">BusinessObject</span>]
+<span class="ot">transform ::</span> <span class="dt">BusinessObject</span> <span class="ot">-&gt;</span> <span class="dt">BusinessObject</span>
+<span class="ot">compress ::</span> [<span class="dt">BusinessObject</span>] <span class="ot">-&gt;</span> <span class="dt">BusinessObject</span>
 
-<span class="ot">someFn ::</span> [<span class="dt">Int</span>] <span class="ot">-&gt;</span> [<span class="dt">Int</span>]
-someFn <span class="fu">=</span> take <span class="dv">10</span> <span class="fu">.</span> sort <span class="fu">.</span> filter (<span class="fu">&gt;</span><span class="dv">20</span>)</code></pre></div>
+myTransform input <span class="fu">=</span> compress <span class="fu">.</span> sortBy (comparing goodness) <span class="fu">.</span> 
+filter (\x <span class="ot">-&gt;</span> makesMoney x) <span class="fu">.</span> map transform <span class="fu">.</span> decompress <span class="fu">$</span> input</code></pre></div>
 </div>
 </div>
 <div id="function-composition---javaish-version" class="slide section level1">
@@ -310,7 +330,7 @@ Function&lt;A,C&gt; dot( Function&lt;B,C&gt; g, Function&lt;A,B&gt; f ) {
    };
 }
 
-// Note how we explicitly compose two functions at a time
+// Note how we have to explicitly compose two functions at a time
 List&lt;int&gt; someFn( List&lt;int&gt; l ) {
   return dot( take(10), dot(sort, filter) ).apply(l);
 }
@@ -325,7 +345,7 @@ List&lt;int&gt; someFn( List&lt;int&gt; l ) {
 <div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell">map<span class="ot"> ::</span> (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> [a] <span class="ot">-&gt;</span> [b]
 <span class="fu">*</span><span class="ot"> ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span>
 <span class="dv">2</span><span class="fu">*</span><span class="ot"> ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">Int</span>
-<span class="ot">($) ::</span> (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> b
+<span class="ot">($) ::</span> (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> b  <span class="co">-- Function application is a function!</span>
 
 map (<span class="dv">2</span><span class="fu">*</span>) [<span class="dv">1</span>,<span class="dv">2</span>,<span class="dv">3</span>] <span class="fu">==</span> [<span class="dv">2</span>,<span class="dv">4</span>,<span class="dv">6</span>]
 
@@ -366,24 +386,25 @@ main _ <span class="fu">=</span> println ((takeWhile (<span class="fu">/=</span>
 <span class="kw">data</span> <span class="dt">MyRecord</span> <span class="fu">=</span> <span class="dt">MyRecord</span> {<span class="ot"> a ::</span> <span class="dt">String</span>,<span class="ot"> b ::</span> <span class="dt">Int</span> }
 main _ <span class="fu">=</span> println ( <span class="dt">MyRecord</span> { a <span class="fu">=</span> <span class="st">&quot;Hello&quot;</span>, b <span class="fu">=</span> <span class="dv">3</span> }<span class="fu">.</span>a )</code></pre></div>
 </div>
-<div id="typeclasses-i.e.-interfaces" class="slide section level1">
-<h1>Typeclasses (i.e. Interfaces)</h1>
-<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- (a :+: b) :*: c == (a :*: c) :+: (b :*: c)</span>
-<span class="kw">class</span> <span class="dt">SemiNearRing</span> a <span class="kw">where</span>
-<span class="ot">   (:+:) ::</span> a <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> a
-<span class="ot">   (:*:) ::</span> a <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> a 
+<div id="typeclasses-i.e.-open-world-interfaces" class="slide section level1">
+<h1>Typeclasses (i.e. Open-world Interfaces)</h1>
+<div class="sourceCode"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span class="co">-- Typeclass for equality</span>
+<span class="kw">class</span> <span class="dt">Eq</span> a <span class="kw">where</span>
+   <span class="fu">==</span><span class="ot"> ::</span> a <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> a
 
-<span class="kw">instance</span> <span class="dt">SemiNearRing</span> <span class="dt">Integer</span> <span class="kw">where</span>
-   x <span class="fu">:+:</span> y <span class="fu">=</span> x <span class="fu">+</span> y
-   x <span class="fu">:*:</span> y <span class="fu">=</span> x <span class="fu">*</span> y
+   <span class="fu">/=</span><span class="ot"> ::</span> a <span class="ot">-&gt;</span> a <span class="ot">-&gt;</span> a
+   a <span class="fu">/=</span> b <span class="fu">=</span> not (a <span class="fu">==</span> b) <span class="co">-- default implementation for /=</span>
 
-<span class="kw">instance</span> <span class="dt">SemiNearRing</span> [<span class="dt">String</span>] <span class="kw">where</span>
-   xs <span class="fu">:+:</span> ys <span class="fu">=</span> xs <span class="fu">++</span> ys
-   xs <span class="fu">:*:</span> ys <span class="fu">=</span> [ xi <span class="fu">++</span> <span class="st">&quot; &quot;</span> <span class="fu">++</span> yj <span class="fu">|</span> xi <span class="ot">&lt;-</span> xs, yj <span class="ot">&lt;-</span> ys]
+<span class="co">-- Eq instance for pairs (a,b)</span>
+<span class="kw">instance</span> <span class="dt">Eq</span> (<span class="dt">Eq</span> a, <span class="dt">Eq</span> b) <span class="ot">=&gt;</span> (a,b) <span class="kw">where</span>
+   (a,b) <span class="fu">==</span> (c,d) <span class="fu">=</span> (a <span class="fu">==</span> c) <span class="fu">&amp;&amp;</span> (b <span class="fu">==</span> d)
 
-main _ <span class="fu">=</span> println <span class="fu">$</span> [<span class="st">&quot;twenty&quot;</span>, <span class="st">&quot;thirty&quot;</span>] <span class="fu">:*:</span> [<span class="st">&quot;one&quot;</span>, <span class="st">&quot;two&quot;</span>, <span class="st">&quot;three&quot;</span>]
-<span class="co">-- Output: [&quot;twenty one&quot;, &quot;twenty two&quot;, &quot;twenty three&quot;,</span>
-<span class="co">--          &quot;thirty one&quot;, &quot;thirty two&quot;, &quot;thirty three&quot;]</span></code></pre></div>
+<span class="co">-- Eq instance for functions a -&gt; a. Can one exist?</span>
+<span class="kw">instance</span> <span class="dt">Eq</span> (<span class="dt">Eq</span> a) <span class="ot">=&gt;</span> (a <span class="ot">-&gt;</span> a) <span class="kw">where</span>
+   f <span class="fu">==</span> g <span class="fu">=</span> undefined <span class="co">-- reduces to halting problem</span>
+
+<span class="co">-- Open-world assumption: can always add new typeclass instances </span>
+<span class="co">-- to existing types</span></code></pre></div>
 </div>
 <div id="a-method-for-dealing-with-failure" class="slide section level1">
 <h1>A Method for Dealing with Failure</h1>
@@ -400,7 +421,7 @@ fmap<span class="ot"> ::</span> (a <span class="ot">-&gt;</span> b) <span class=
 <span class="ot">join ::</span> <span class="dt">Maybe</span> (<span class="dt">Maybe</span> a) <span class="ot">-&gt;</span> <span class="dt">Maybe</span> a
 
 <span class="co">-- Our definition of &lt;=&lt;</span>
-(g <span class="fu">&lt;=</span> f) a <span class="fu">=</span> join (fmap g (f<span class="ot"> a ::</span> <span class="dt">Maybe</span> b)<span class="ot"> ::</span> <span class="dt">Maybe</span> <span class="dt">Maybe</span> c)
+(g <span class="fu">&lt;=&lt;</span> f) a <span class="fu">=</span> join (fmap g (f<span class="ot"> a ::</span> <span class="dt">Maybe</span> b)<span class="ot"> ::</span> <span class="dt">Maybe</span> <span class="dt">Maybe</span> c)
 
 <span class="co">-- ... And now we can compose functions that can fail!</span>
 return<span class="ot"> ::</span> a <span class="ot">-&gt;</span> <span class="dt">Maybe</span> a; return a <span class="fu">=</span> <span class="dt">Just</span> a</code></pre></div>
@@ -412,7 +433,7 @@ join (<span class="dt">Just</span> (<span class="dt">Just</span> a)) <span class
 join _ <span class="fu">=</span> <span class="dt">Nothing</span>
 return a <span class="fu">=</span> <span class="dt">Just</span> a
 
-<span class="co">-- laws:</span>
+<span class="co">-- Laws:</span>
 <span class="co">-- join is associative: join . join == join . fmap join</span>
 <span class="co">-- return is identity: join . fmap return == join . return == id</span>
 
@@ -436,7 +457,7 @@ fibMemo <span class="fu">=</span> arrayCache f <span class="dv">100</span> <span
    f <span class="dv">1</span> array <span class="fu">=</span> <span class="dv">1</span>
    f n array <span class="fu">=</span> array<span class="fu">.</span>[n<span class="fu">-</span><span class="dv">1</span>] <span class="fu">+</span> array<span class="fu">.</span>[n<span class="fu">-</span><span class="dv">2</span>]
 
-main _ <span class="fu">=</span> println <span class="fu">$</span> fibMemo <span class="ot">`elemAt`</span> <span class="dv">99</span>
+main _ <span class="fu">=</span> println (fibMemo <span class="ot">`elemAt`</span> <span class="dv">99</span>)
 <span class="co">-- Output: 354224848179261915075</span></code></pre></div>
 <ul class="incremental">
 <li>Credit: Ingo, via personal correspondence on Github</li>
@@ -457,7 +478,28 @@ main _ <span class="fu">=</span> println <span class="fu">$</span> fibMemo <span
 <li>This means that we have to write <em>bindings</em> to Java libraries. Frege is still relatively young: bindings do not yet exist for many popular libraries</li>
 </ul>
 <ul class="incremental">
-<li>This is an opportunity to work on some bindings!</li>
+<li>This is an opportunity to work on some bindings! They are relatively easy to write for intermediate functional programmers</li>
+</ul>
+</div>
+<div id="why-consider-frege" class="slide section level1">
+<h1>Why Consider Frege?</h1>
+<ul class="incremental">
+<li><a href="https://www.youtube.com/watch?v=BveDrw9CwEg">43k lines of Groovy to 8k lines of Haskell (80% drop in SLOC) with 64x performance and fewer bugs</a></li>
+</ul>
+<ul class="incremental">
+<li>Leverage the power of existing Java libraries: call Java from Frege, and <a href="https://github.com/Frege/frege/wiki/Calling-Frege-Code-from-Java">Frege from Java</a></li>
+</ul>
+<ul class="incremental">
+<li>Take advantage of tons of largely compatible pre-existing Haskell code</li>
+</ul>
+<ul class="incremental">
+<li>Static type safety: find more bugs at compile time. The opposite of the &quot;reflection everywhere&quot; approach</li>
+</ul>
+<ul class="incremental">
+<li>Learn something completely different</li>
+</ul>
+<ul class="incremental">
+<li>Null pointers don't exist (drop microphone)</li>
 </ul>
 </div>
 <div id="some-inspiration" class="slide section level1">
@@ -482,7 +524,9 @@ main _ <span class="fu">=</span> println <span class="fu">$</span> fibMemo <span
 <div id="references" class="slide section level1">
 <h1>References</h1>
 <ul>
-<li><p><a href="web.mit.edu/frege-lang_v3.21/Introduction_Frege.pdf">Ingo's Introduction to Frege</a></p></li>
+<li><p><a href="http://web.mit.edu/frege-lang_v3.21/Introduction_Frege.pdf">Ingo Wechsung's Introduction to Frege</a></p></li>
+<li><p><a href="https://github.com/mperry/frege-gradle-example">Frege Gradle Example Project</a></p></li>
+<li><p><a href="https://github.com/mmisamore/frege-demo">My simplification of that example</a></p></li>
 <li><p><a href="https://github.com/talios/frege-maven-plugin">Frege Maven Plug-in</a></p></li>
 <li><p><a href="https://github.com/Frege/eclipse-plugin/wiki/fregIDE-Tutorial">Frege IDE Plug-in</a></p></li>
 <li><p><a href="http://learnyouahaskell.com/">Learn You A Haskell</a></p></li>

@@ -37,7 +37,7 @@ answer"). Order of expressions and declarations doesn't matter
 
 > - Program execution consists of evaluating expressions, not executing statements
 
-> - Examples of imperative languages with some functional features: C#, Java 8, 
+> - Examples of imperative/OO languages with some functional features: C#, Java 8, Groovy,
 Scala, JavaScript. These are not functional programming languages.
 
 
@@ -45,8 +45,8 @@ Scala, JavaScript. These are not functional programming languages.
 
 > - Everything in Functional Programming, plus ...
 
-> - Evaluating expressions does not cause side-effects (i.e. observable interactions 
-with state or the outside world)
+> - Evaluating expressions does not cause side-effects (i.e. 
+    <span style="color:red">observable interactions with state or the outside world</span>)
 
 > - In any context, evaluating an expression more than once always gives the
 same answer
@@ -104,7 +104,8 @@ variable assignment, no objects, no for- or while-loops)
 
 > - Most algorithms in literature are expressed in imperative terms (e.g. graph algorithms)
 
-> - Producing fast immutable data structures is still an active research area
+> - Algorithms that ostensibly depend on order of evaluation have to be expressed
+    differently (but this often removes accidental complexity)
 
 > - Bindings are required to interface with impure languages (e.g. Java) 
 
@@ -117,8 +118,8 @@ variable assignment, no objects, no for- or while-loops)
 programming language for the JVM.  Modeled on Haskell, which doesn't currently
 run on the JVM.
 
-> - Lazy evaluation: a non-strict, *call-by-need* evaluation strategy implemented
-using *thunks*
+> - Lazy evaluation: a non-strict, *call-by-need* strategy for evaluating
+>   expressions. Implemented using *thunks*
 
 > - A *thunk* is just a placeholder for an unevaluated expression
 
@@ -141,7 +142,8 @@ Frege. Compiles to Java with a builtin lightweight runtime system.
 higher-order functions, algebraic data types, Haskell-style type classes,
 pattern matching, higher-rank polymorphism
 
-> - Friendly community: [Frege Homepage](http://github.com/Frege/frege) 
+> - Documentation: [Frege Homepage](http://github.com/Frege/frege), [Standard
+   Library API](http://www.frege-lang.org/doc/fregedoc.html)
 
 > - Interop with Java via a foreign function interface: 
 [Frege FFI Example](http://mmhelloworld.github.io/blog/2013/07/10/frege-hello-java/)
@@ -204,7 +206,6 @@ to construct it
 
 > - We still have to limit the search space for *a* and *b* to something finite
 
-
 # Basic I/O in Frege
 
 ```haskell
@@ -222,8 +223,26 @@ sneakyIO = println "I'll try to do IO too!"
 doesn't produce side-effects!
 
 > - Expressions that could potentially produce IO must have return type *IO a* for some
-*a*. This is <span style="color:red">statically enforced</span> by the type checker!
+*a*. This condition is <span style="color:red">statically enforced</span> by the type checker!
 
+# Anonymous Functions (aka lambdas)
+
+> - Java 8 has these too (great!), but it's still not a functional programming language 
+
+> - ```haskell
+-- Filter a list of as using some lambda p
+filter :: (a -> Bool) -> [a] -> [a]
+filter p [] = []
+filter p (a:as) = if p a then a:(filter p as) else filter p as 
+-- e.g. passing a lambda
+filter (\x -> x > 10) [1..100] -- returns [11..100]
+```
+
+> - filter p . filter q = filter (\\x -> p x && q x)
+
+> - Similarly: filter p . filter q = filter q . filter p (useful when p or q is
+   harder to compute than the other). Such tricks lead to *equational reasoning*
+   about program structure
 
 # Function Composition 
 
@@ -237,12 +256,12 @@ Observe that *a*, *b*, and *c* here are type parameters, so . is polymorphic
 
 > - Example: 
 ```haskell
-take :: Int -> [a] -> [a]
-sort :: [a] -> [a]
-filter :: (a -> Bool) -> [a] -> [a]
+decompress :: InputStream -> [BusinessObject]
+transform :: BusinessObject -> BusinessObject
+compress :: [BusinessObject] -> BusinessObject
 
-someFn :: [Int] -> [Int]
-someFn = take 10 . sort . filter (>20)
+myTransform input = compress . sortBy (comparing goodness) . 
+filter (\x -> makesMoney x) . map transform . decompress $ input
 ```
 
 # Function Composition - Java(ish) version
@@ -257,7 +276,7 @@ Function&lt;A,C&gt; dot( Function&lt;B,C&gt; g, Function&lt;A,B&gt; f ) {
    };
 }
 
-// Note how we explicitly compose two functions at a time
+// Note how we have to explicitly compose two functions at a time
 List&lt;int&gt; someFn( List&lt;int&gt; l ) {
   return dot( take(10), dot(sort, filter) ).apply(l);
 }
@@ -273,7 +292,7 @@ List&lt;int&gt; someFn( List&lt;int&gt; l ) {
 map :: (a -> b) -> [a] -> [b]
 * :: Int -> Int -> Int
 2* :: Int -> Int
-($) :: (a -> b) -> a -> b
+($) :: (a -> b) -> a -> b  -- Function application is a function!
 
 map (2*) [1,2,3] == [2,4,6]
 
@@ -321,25 +340,26 @@ data MyRecord = MyRecord { a :: String, b :: Int }
 main _ = println ( MyRecord { a = "Hello", b = 3 }.a )
 ```
 
-# Typeclasses (i.e. Interfaces)
+# Typeclasses (i.e. Open-world Interfaces)
 
 ```haskell
--- (a :+: b) :*: c == (a :*: c) :+: (b :*: c)
-class SemiNearRing a where
-   (:+:) :: a -> a -> a
-   (:*:) :: a -> a -> a 
+-- Typeclass for equality
+class Eq a where
+   == :: a -> a -> a
 
-instance SemiNearRing Integer where
-   x :+: y = x + y
-   x :*: y = x * y
+   /= :: a -> a -> a
+   a /= b = not (a == b) -- default implementation for /=
 
-instance SemiNearRing [String] where
-   xs :+: ys = xs ++ ys
-   xs :*: ys = [ xi ++ " " ++ yj | xi <- xs, yj <- ys]
+-- Eq instance for pairs (a,b)
+instance Eq (Eq a, Eq b) => (a,b) where
+   (a,b) == (c,d) = (a == c) && (b == d)
 
-main _ = println $ ["twenty", "thirty"] :*: ["one", "two", "three"]
--- Output: ["twenty one", "twenty two", "twenty three",
---          "thirty one", "thirty two", "thirty three"]
+-- Eq instance for functions a -> a. Can one exist?
+instance Eq (Eq a) => (a -> a) where
+   f == g = undefined -- reduces to halting problem
+
+-- Open-world assumption: can always add new typeclass instances 
+-- to existing types
 ```
 
 # A Method for Dealing with Failure
@@ -358,7 +378,7 @@ fmap :: (a -> b) -> Maybe a -> Maybe b
 join :: Maybe (Maybe a) -> Maybe a
 
 -- Our definition of <=<
-(g <= f) a = join (fmap g (f a :: Maybe b) :: Maybe Maybe c)
+(g <=< f) a = join (fmap g (f a :: Maybe b) :: Maybe Maybe c)
 
 -- ... And now we can compose functions that can fail!
 return :: a -> Maybe a; return a = Just a
@@ -372,7 +392,7 @@ join (Just (Just a)) = Just a
 join _ = Nothing
 return a = Just a
 
--- laws:
+-- Laws:
 -- join is associative: join . join == join . fmap join
 -- return is identity: join . fmap return == join . return == id
 
@@ -399,7 +419,7 @@ fibMemo = arrayCache f 100 where
    f 1 array = 1
    f n array = array.[n-1] + array.[n-2]
 
-main _ = println $ fibMemo `elemAt` 99
+main _ = println (fibMemo `elemAt` 99)
 -- Output: 354224848179261915075
 ```
 
@@ -421,7 +441,25 @@ freeze to a final immutable result
 > - This means that we have to write *bindings* to Java libraries. Frege is
 still relatively young: bindings do not yet exist for many popular libraries
 
-> - This is an opportunity to work on some bindings!
+> - This is an opportunity to work on some bindings! They are relatively easy to
+write for intermediate functional programmers 
+
+
+# Why Consider Frege?
+
+> - [43k lines of Groovy to 8k lines of Haskell (80% drop in SLOC) with 64x performance and fewer bugs](https://www.youtube.com/watch?v=BveDrw9CwEg)
+
+> - Leverage the power of existing Java libraries: call Java from Frege, and
+    [Frege from Java](https://github.com/Frege/frege/wiki/Calling-Frege-Code-from-Java)
+
+> - Take advantage of tons of largely compatible pre-existing Haskell code
+
+> - Static type safety: find more bugs at compile time. The opposite of the
+    "reflection everywhere" approach 
+
+> - Learn something completely different
+
+> - Null pointers don't exist (drop microphone)
 
 
 # Some inspiration
@@ -448,7 +486,11 @@ unintended side-effects."
 
 # References 
 
-* [Ingo's Introduction to Frege](web.mit.edu/frege-lang_v3.21/Introduction_Frege.pdf)
+* [Ingo Wechsung's Introduction to Frege](http://web.mit.edu/frege-lang_v3.21/Introduction_Frege.pdf)
+
+* [Frege Gradle Example Project](https://github.com/mperry/frege-gradle-example)
+
+* [My simplification of that example](https://github.com/mmisamore/frege-demo)
 
 * [Frege Maven Plug-in](https://github.com/talios/frege-maven-plugin)
 
