@@ -1,17 +1,18 @@
 % Pure Functional Programming\
 on the JVM with Frege 
 % Michael D. Misamore 
-% Oct 20, 2015 
+% March 2, 2016 
 
 # Some History
 
 <img src="church.jpg" style="height: 5em; float:right">
 <img src="turing.jpg" style="height: 5em; float:right">
 
-> - In the beginning (1936), Alan Turing invented his machines for formalizing computations\
+> - In the beginning (1936), Alan Turing invented his machines for formalizing
+>   computations. Operational/mechanical in style.
 
-> - Around the same time (1936), Alonzo Church completed work on a totally different model for
-formalizing computations: the &lambda;-calculus
+> - Around the same time (1936), Alonzo Church completed work on a totally
+>   different model: the &lambda;-calculus. Mathematical in style.
 
 > - Church and Turing proved that the same computations can be expressed in
 either system. 
@@ -20,6 +21,8 @@ either system.
 machines as basis; functional programming languages (e.g. Lisp, SML, Haskell) use
 Church's &lambda;-calculus.
 
+> - Operational vs. Mathematical leads to Imperative vs. Declarative, i.e. *Doing vs.
+>   Being*
 
 # What is Functional Programming? 
 
@@ -33,7 +36,7 @@ answer"). Order of expressions and declarations doesn't matter
 (.) :: (b -> c) -> (a -> b) -> (a -> c)
 ```
 
-> - The output of any function depends *only* on its input, and not on any other state
+> - The output of any function depends *only* on its input and not on any other state
 
 > - Program execution consists of evaluating expressions, not executing statements
 
@@ -46,7 +49,8 @@ Scala, JavaScript. These are not functional programming languages.
 > - Everything in Functional Programming, plus ...
 
 > - Evaluating expressions does not cause side-effects (i.e. 
-    <span style="color:red">observable interactions with state or the outside world</span>)
+    <span style="color:red">observable interactions with state or the outside
+    world</span>) - this is called *purity*, and it's a big deal
 
 > - In any context, evaluating an expression more than once always gives the
 same answer
@@ -57,8 +61,11 @@ same answer
 > - Expressions representing I/O actions are specially labeled. Evaluating these
 does *not* cause I/O to occur.
 
+> - Order of I/O is separate from order of evaluation. This is another big
+>   innovation.
 
-# Purity - Why it Matters
+
+# Purity Matters
 
     // Whoops.java
     public class Whoops {
@@ -109,19 +116,18 @@ variable assignment, no objects, no for- or while-loops)
 
 > - Bindings are required to interface with impure languages (e.g. Java) 
 
-> - Non-strict evaluation strategies, if used, can result in undesirable space-leaks
+> - Non-strict evaluation strategies, if used, can sometimes result in undesirable space-leaks
 
 
 # What is Frege?
 
-> - A purely functional, strongly and statically typed, *lazily evaluated*
-programming language for the JVM.  Modeled on Haskell, which doesn't currently
-run on the JVM.
+> - Haskell for the JVM.
+
+> - Haskell: General-purpose pure functional programming language with strong
+>   static typing and non-strict evaluation strategy.
 
 > - Lazy evaluation: a non-strict, *call-by-need* strategy for evaluating
->   expressions. Implemented using *thunks*
-
-> - A *thunk* is just a placeholder for an unevaluated expression
+>   expressions.
 
 . . .
 ```haskell
@@ -130,13 +136,13 @@ g x = g (x+1)
 f :: Int -> Int -> Int -> (Int,Int)
 f x y z = (x, y)
 ```
-Then "f 1 2 3" and "f 1 2 (g 1)" both give (1, 2) even though g 1 diverges!
+Then "f 2 3 4" and "f 2 3 (g 4)" both give (2, 3) even though g 4 diverges!
 
 
 # What is Frege (cont.d)?
 
 > - Created by Ingo Wechsung in 2011. Development ongoing. Compiler written in
-Frege. Compiles to Java with a builtin lightweight runtime system.
+Frege. Transpiles to Java with a builtin lightweight runtime system.
 
 > - Features a crazy-powerful type system: Hindley-Milner type inference, 
 higher-order functions, algebraic data types, Haskell-style type classes,
@@ -154,60 +160,14 @@ Haskell (which is an excellent idea)
 > - Problem: Functional programming is addictive!
 
 
-# Tour of Frege syntax - Basic Functions
 
-```haskell
---- Basic syntax. This is a documentation comment
-module examples.Fibonacci where
+# Control Your I/O 
 
---- The 'main' function
-main :: [String] -> IO () -- type signature
-main _ = println (take 10 (map fibonacci [0..]))
+> - The runtime (not the program) is responsible for producing I/O when
+>   necessary. Expression evaluation, by itself, does not necessarily produce
+>   I/O.
 
---- Here is a function definition
-fibonacci :: Int -> Integer -- type signature
-fibonacci 0 = 1 -- pattern matches
-fibonacci 1 = 1
-fibonacci n | n >= 2 = fibonacci (n-1) + fibonacci (n-2) -- guards
-fibonacci _ = 0 -- wildcards
-```
-
-# Infinite data structures, where clauses
-
-```haskell
---- All the Fibonacci numbers as a list, once and for all
-fibs :: [Integer]
-fibs = map f [0..] where
-   f 0 = 1
-   f 1 = 1
-   f n | n >= 2 = f (n - 1) + f (n - 2)
-   f _ = 0
-
-main :: [String] -> IO ()
-main _ = println (take 10 (filter (> 500) (map (+1) fibs)))
-```
-Output: [611, 988, 1598, 2585, 4182, 6766, 10947, 17712, 28658, 46369]
-
-
-# List Comprehensions, boolean guards
-
-```haskell
--- List comprehension and boolean guards
-main _ = println (take 10 pythagoreanTriples)
-pythagoreanTriples :: [(Integer,Integer,Integer)]
-pythagoreanTriples = [ (a,b,c) | c <- [1..], a <- [1..c], b <- [1..c], 
-                                 a <= b, a^2 + b^2 == c^2 ]
-```
-Output: [(3, 4, 5), (6, 8, 10), (5, 12, 13), (9, 12, 15), (8, 15, 17), (12, 16,
-20), (7, 24, 25), (15, 20, 25), (10, 24, 26), (20, 21, 29)]
-
-> - Observe how declarative this is: we are saying *what* the thing is, not *how*
-to construct it
-
-> - We still have to limit the search space for *a* and *b* to something finite
-
-# Basic I/O in Frege
-
+. . .
 ```haskell
 -- Basic I/O
 main :: [String] -> IO ()
@@ -219,15 +179,13 @@ main _ = sneakyIO `seq` do
 sneakyIO :: IO ()
 sneakyIO = println "I'll try to do IO too!"
 ```
-> - The sneakyIO here is not so sneaky: it *does* get evaluated, but evaluation
-doesn't produce side-effects!
 
-> - Expressions that could potentially produce IO must have return type *IO a* for some
+> - Expressions that could potentially ask for I/O must have return type *IO a* for some
 *a*. This condition is <span style="color:red">statically enforced</span> by the type checker!
 
-# Anonymous Functions (aka lambdas)
+# Refactor at Will
 
-> - Java 8 has these too (great!), but it's still not a functional programming language 
+> - Since all functions are pure by default, we can use mathematical methods to refactor them.
 
 > - ```haskell
 -- Filter a list of as using some lambda p
@@ -242,9 +200,10 @@ filter (\x -> x > 10) [1..100] -- returns [11..100]
 
 > - Similarly: filter p . filter q = filter q . filter p (useful when p or q is
    harder to compute than the other). Such tricks lead to *equational reasoning*
-   about program structure
+   about program structure - optimizations are potentially much more aggressive
+   than in imperative languages.
 
-# Function Composition 
+# Terse Data-Processing Pipelines
 
 > - The function composition operator is called .
 
@@ -254,14 +213,14 @@ filter (\x -> x > 10) [1..100] -- returns [11..100]
 ```
 Observe that *a*, *b*, and *c* here are type parameters, so . is polymorphic
 
-> - Example: 
+. . .
 ```haskell
 decompress :: InputStream -> [BusinessObject]
 transform :: BusinessObject -> BusinessObject
 compress :: [BusinessObject] -> BusinessObject
 
-myTransform input = compress . sortBy (comparing goodness) . 
-filter (\x -> makesMoney x) . map transform . decompress $ input
+myTransform input = (compress . sortBy (comparing goodness) . 
+filter (\x -> makesMoney x) . map transform . decompress) input
 ```
 
 # Function Composition - Java(ish) version
@@ -282,46 +241,7 @@ List&lt;int&gt; someFn( List&lt;int&gt; l ) {
 }
 </pre>
 
-# Partial evaluation and function application
-
-> - In Haskell (hence Frege), *every* function with an argument is unary, i.e. a
--> b -> c is really a -> (b -> c)
-
-. . .
-```haskell
-map :: (a -> b) -> [a] -> [b]
-* :: Int -> Int -> Int
-2* :: Int -> Int
-($) :: (a -> b) -> a -> b  -- Function application is a function!
-
-map (2*) [1,2,3] == [2,4,6]
-
-main _ = println $ map ((2*) . (2*)) [1,2,3]
-```
-Output: [4, 8, 12]
-
-
-# Higher-order functions
-
-```haskell
-applyUntil :: (a -> Bool) -> (a -> a) -> a -> a
-applyUntil p f a = if (p a) then a else applyUntil p f (f a)
-
-hailStone :: Integer -> Integer
-hailStone n | even n = n `div` 2
-            | otherwise = 3*n + 1
-
-main _ = println (applyUntil (== 1) hailStone 31)
-
--- or
-
-main _ = println ((takeWhile (/= 1) . iterate hailStone) 31)
-```
-Output: [31, 94, 47, 142, 71, 214, 107, 322, 161, 484, 242, 121, 364, 182, 91,
-274, 137, 412, 206, 103, 310 ...
-
-
-# Data types in Frege
+# Concise Syntax for Data Types 
 
 ```haskell
 -- Data structures
@@ -340,13 +260,12 @@ data MyRecord = MyRecord { a :: String, b :: Int }
 main _ = println ( MyRecord { a = "Hello", b = 3 }.a )
 ```
 
-# Typeclasses (i.e. Open-world Interfaces)
+# Flexible Interfaces 
 
 ```haskell
 -- Typeclass for equality
 class Eq a where
    == :: a -> a -> a
-
    /= :: a -> a -> a
    a /= b = not (a == b) -- default implementation for /=
 
@@ -359,10 +278,31 @@ instance Eq (Eq a) => (a -> a) where
    f == g = undefined -- reduces to halting problem
 
 -- Open-world assumption: can always add new typeclass instances 
--- to existing types
+-- to existing types after they are defined
 ```
 
-# A Method for Dealing with Failure
+# Generators/Explicit Streams are Obsolete
+
+Just return infinite data structures instead.
+
+. . .
+```haskell
+--- All the Fibonacci numbers as a list, once and for all
+fibs :: [Integer]
+fibs = map f [0..] where
+   f 0 = 1
+   f 1 = 1
+   f n | n >= 2 = f (n - 1) + f (n - 2)
+   f _ = 0
+
+main :: [String] -> IO ()
+main _ = println (take 10 (filter (> 500) (map (+1) fibs)))
+```
+
+Output: [611, 988, 1598, 2585, 4182, 6766, 10947, 17712, 28658, 46369]
+
+
+# No Null Pointers 
 
 ```haskell
 -- Ordinary function composition
@@ -371,10 +311,10 @@ instance Eq (Eq a) => (a -> a) where
 -- Composition with possibility of failure at each step 
 (<=<) :: (b -> Maybe c) -> (a -> Maybe b) -> (a -> Maybe c)
 
--- A transformation that only works on Just values, otherwise Nothing
+-- A transformation that works on values that may be Nothing 
 fmap :: (a -> b) -> Maybe a -> Maybe b
 
--- A flattening operation
+-- A flattening operation: Just (Just a) = Just a, otherwise Nothing
 join :: Maybe (Maybe a) -> Maybe a
 
 -- Our definition of <=<
@@ -384,7 +324,7 @@ join :: Maybe (Maybe a) -> Maybe a
 return :: a -> Maybe a; return a = Just a
 ```
 
-# A Method for Dealing with Failure (2)
+# No Null Pointers (cont'd)
 
 ```haskell
 -- Definition of join and return for Maybe a
@@ -406,27 +346,7 @@ join (Just (Nothing)) = (join . return)(Nothing)
 -- Any such thing with join and return satisfying these laws is a Monad
 ```
 
-
-# Memoization without State
-
-```haskell
--- Build an immutable Java array of Integers by reusing 
--- values at previously computed indices (memoized array 
--- construction)
-fibMemo :: JArray Integer
-fibMemo = arrayCache f 100 where
-   f 0 array = 1
-   f 1 array = 1
-   f n array = array.[n-1] + array.[n-2]
-
-main _ = println (fibMemo `elemAt` 99)
--- Output: 354224848179261915075
-```
-
-> - Credit: Ingo, via personal correspondence on Github
-
-
-# Foreign Function Interface to Java
+# Java Interop
 
 > - Data structures in Frege are immutable with pure operations, but Java data
 structures are <span style="color:blue">mutable</span> and operations have
@@ -494,7 +414,7 @@ unintended side-effects."
 
 * [Frege Maven Plug-in](https://github.com/talios/frege-maven-plugin)
 
-* [Frege IDE Plug-in](https://github.com/Frege/eclipse-plugin/wiki/fregIDE-Tutorial)
+* [Frege IDE Plug-in for Eclipse](https://github.com/Frege/eclipse-plugin/wiki/fregIDE-Tutorial)
 
 * [Learn You A Haskell](http://learnyouahaskell.com/)
 
